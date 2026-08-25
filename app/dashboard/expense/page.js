@@ -163,7 +163,7 @@ export default function ExpensePage() {
   };
 
   return (
-    <div>
+    <div className="text-black">
       {/* Toast Notification */}
       <Toast
         show={toast.show}
