@@ -138,7 +138,7 @@ export default function MedicinesPage() {
   };
 
   return (
-    <div>
+    <div className="text-black">
       {/* Toast Notification */}
       <Toast
         show={toast.show}
@@ -149,7 +149,7 @@ export default function MedicinesPage() {
 
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Medicine Inventory</h2>
       
-      <div className="flex space-x-4 mb-6">
+      <div className="flex space-x-4 mb-6 text-black">
         <button 
           onClick={() => setActiveTab('add')} 
           className={`px-4 py-2 rounded-md transition-colors ${
