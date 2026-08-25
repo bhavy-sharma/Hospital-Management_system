@@ -4,7 +4,6 @@ import { getMemberById, updateMember, deleteMember } from '@/lib/models/Member';
 // GET single member
 export async function GET(request, { params }) {
   try {
-    // ✅ Important: await params ko access karne se pehle
     const { id } = await params;
     const member = await getMemberById(id);
     
@@ -15,9 +14,16 @@ export async function GET(request, { params }) {
       );
     }
     
+    // Format member for frontend
+    const formattedMember = {
+      ...member,
+      _id: member._id.toString(),
+      id: member._id.toString()
+    };
+    
     return NextResponse.json({ 
       success: true, 
-      data: member 
+      data: formattedMember 
     });
   } catch (error) {
     console.error('Error fetching member:', error);
@@ -31,10 +37,9 @@ export async function GET(request, { params }) {
 // PUT update member
 export async function PUT(request, { params }) {
   try {
-    // ✅ Important: await params ko access karne se pehle
     const { id } = await params;
     const body = await request.json();
-    const { name, role, staffType } = body;
+    const { name, role, staffType, details, phone, email, address } = body;
 
     // Check if member exists
     const existingMember = await getMemberById(id);
@@ -63,7 +68,11 @@ export async function PUT(request, { params }) {
     const updateData = {
       name,
       role,
-      staffType: role === 'Staff' ? staffType : 'N/A'
+      staffType: role === 'Staff' ? staffType : 'N/A',
+      details: details || '',
+      phone: phone || '',
+      email: email || '',
+      address: address || ''
     };
 
     await updateMember(id, updateData);
@@ -84,7 +93,6 @@ export async function PUT(request, { params }) {
 // DELETE member
 export async function DELETE(request, { params }) {
   try {
-    // ✅ Important: await params ko access karne se pehle
     const { id } = await params;
     
     // Check if member exists
