@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Toast from '../../components/Toast';
 import ConfirmationModal from '../../components/ConfirmationModal';
 
-export default function MedicinesPage() {
+export default function PharmacyPage() {
   const [medicines, setMedicines] = useState([]);
   const [activeTab, setActiveTab] = useState('add'); // 'add', 'out', 'restock'
   const [formData, setFormData] = useState({ name: '', mg: '', quantity: '' });
@@ -66,7 +66,7 @@ export default function MedicinesPage() {
       const data = await response.json();
 
       if (data.success) {
-        showToast('Medicine added to stock successfully!');
+        showToast('Medicine added to pharmacy successfully!');
         await fetchMedicines();
         setFormData({ name: '', mg: '', quantity: '' });
       } else {
@@ -112,7 +112,7 @@ export default function MedicinesPage() {
     }
   };
 
-  // ✅ Restock medicine (NEW)
+  // Restock medicine
   const handleRestock = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -175,7 +175,6 @@ export default function MedicinesPage() {
     }
   };
 
-  // Get selected medicine details for restock/out
   const getSelectedMedicine = (id) => {
     return medicines.find(m => (m._id || m.id) === id);
   };
@@ -204,7 +203,13 @@ export default function MedicinesPage() {
         cancelText="Cancel"
       />
 
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Medicine Inventory</h2>
+      {/* ✅ Header - Pharmacy */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          💊 Pharmacy
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">Manage medicine inventory, stock, and dispensing</p>
+      </div>
       
       {/* Tabs */}
       <div className="flex flex-wrap gap-3 mb-6 text-black">
@@ -293,12 +298,12 @@ export default function MedicinesPage() {
             className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
             disabled={loading}
           >
-            {loading ? 'Adding...' : 'Add to Stock'}
+            {loading ? 'Adding...' : 'Add to Pharmacy'}
           </button>
         </form>
       )}
 
-      {/* ✅ Restock Medicine Form */}
+      {/* Restock Medicine Form */}
       {activeTab === 'restock' && (
         <form onSubmit={handleRestock} className="bg-white p-6 rounded-lg shadow-md max-w-lg mb-8">
           <h3 className="text-lg font-semibold mb-4 text-gray-800">📦 Restock Medicine</h3>
@@ -329,7 +334,6 @@ export default function MedicinesPage() {
             )}
           </div>
 
-          {/* Show current stock if selected */}
           {selectedRestockMedicine && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
               <p className="text-sm text-green-800">
@@ -393,7 +397,6 @@ export default function MedicinesPage() {
             </select>
           </div>
 
-          {/* Show current stock if selected */}
           {selectedOutMedicine && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
               <p className="text-sm text-red-800">
@@ -467,7 +470,7 @@ export default function MedicinesPage() {
             ) : medicines.length === 0 ? (
               <tr>
                 <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
-                  No medicines in stock.
+                  No medicines in pharmacy.
                 </td>
               </tr>
             ) : 
