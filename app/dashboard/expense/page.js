@@ -6,7 +6,8 @@ import ConfirmationModal from '../../components/ConfirmationModal';
 
 export default function ExpensePage() {
   const [expenses, setExpenses] = useState([]);
-  const [staffMembers, setStaffMembers] = useState([]);
+  const [staffMembers, setStaffMembers] = useState([]);   // Staff only
+  const [doctors, setDoctors] = useState([]);             // Doctors only
   const [formData, setFormData] = useState({ 
     type: 'Maintenance', 
     staffId: '', 
@@ -19,32 +20,29 @@ export default function ExpensePage() {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const router = useRouter();
 
-  // Fetch staff members
-  const fetchStaffMembers = async () => {
+  // ✅ Fetch both staff and doctors
+  const fetchMembers = async () => {
     try {
-      console.log('Fetching staff members...');
+      console.log('Fetching members...');
       const response = await fetch('/api/members');
       const data = await response.json();
-      console.log('Staff members response:', data);
       
       if (data.success) {
         const allMembers = data.data || [];
-        console.log('All members:', allMembers);
         
-        // Filter only Staff role
+        // Filter staff and doctors separately
         const staff = allMembers.filter(m => m.role === 'Staff');
-        console.log('Filtered staff:', staff);
+        const doctorList = allMembers.filter(m => m.role === 'Doctor');
+        
+        console.log('Staff:', staff.length, 'Doctors:', doctorList.length);
         
         setStaffMembers(staff);
-        
-        if (staff.length === 0) {
-          console.log('No staff members found');
-        }
+        setDoctors(doctorList);
       } else {
         console.error('Failed to fetch members:', data.message);
       }
     } catch (error) {
-      console.error('Error fetching staff:', error);
+      console.error('Error fetching members:', error);
     }
   };
 
@@ -70,16 +68,14 @@ export default function ExpensePage() {
   };
 
   useEffect(() => {
-    // Check authentication
     const token = localStorage.getItem('token');
     if (!token) {
       router.push('/login');
       return;
     }
     
-    // Load data
     const loadData = async () => {
-      await fetchStaffMembers();
+      await fetchMembers();
       await fetchExpenses();
     };
     loadData();
@@ -152,7 +148,6 @@ export default function ExpensePage() {
     }
   };
 
-  // Format date
   const formatDate = (date) => {
     const d = new Date(date);
     return d.toLocaleDateString('en-IN', {
@@ -161,6 +156,8 @@ export default function ExpensePage() {
       year: 'numeric'
     });
   };
+
+  const totalSalaryMembers = staffMembers.length + doctors.length;
 
   return (
     <div className="text-black">
@@ -209,9 +206,12 @@ export default function ExpensePage() {
           </select>
         </div>
 
+        {/* ✅ Salary: Select Doctor OR Staff */}
         {formData.type === 'Salary' && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Staff</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Doctor / Staff
+            </label>
             <select 
               required 
               className="w-full text-black px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
@@ -219,17 +219,35 @@ export default function ExpensePage() {
               onChange={(e) => setFormData({ ...formData, staffId: e.target.value })}
               disabled={loading}
             >
-              <option value="">Choose Staff Member</option>
-              {staffMembers.map(staff => (
-                <option key={staff._id || staff.id} value={staff._id || staff.id}>
-                  {staff.name} ({staff.staffType || 'Staff'})
-                </option>
-              ))}
+              <option value="">Choose Member</option>
+
+              {/* ✅ Doctors Group */}
+              {doctors.length > 0 && (
+                <optgroup label="👨‍⚕️ Doctors">
+                  {doctors.map(doc => (
+                    <option key={doc._id || doc.id} value={doc._id || doc.id}>
+                      {doc.name} — {doc.specialization && doc.specialization !== 'N/A' ? doc.specialization : 'Doctor'}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+
+              {/* ✅ Staff Group */}
+              {staffMembers.length > 0 && (
+                <optgroup label="👨‍💼 Staff">
+                  {staffMembers.map(staff => (
+                    <option key={staff._id || staff.id} value={staff._id || staff.id}>
+                      {staff.name} — {staff.staffType || 'Staff'}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
-            {staffMembers.length === 0 && (
+
+            {totalSalaryMembers === 0 && (
               <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-sm text-yellow-800">
-                  ⚠️ No staff members found. Please add staff in the "Members" tab first.
+                  ⚠️ No doctors or staff found. Please add them in the "Members" tab first.
                 </p>
                 <button
                   type="button"
@@ -254,6 +272,7 @@ export default function ExpensePage() {
             value={formData.amount} 
             onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
             disabled={loading}
+            placeholder="e.g., 25000"
           />
         </div>
 
@@ -289,7 +308,7 @@ export default function ExpensePage() {
             <tr>
               <th className="px-6 py-3 text-gray-600">Date</th>
               <th className="px-6 py-3 text-gray-600">Type</th>
-              <th className="px-6 py-3 text-gray-600">Staff/Details</th>
+              <th className="px-6 py-3 text-gray-600">Member/Details</th>
               <th className="px-6 py-3 text-gray-600 text-right">Amount</th>
               <th className="px-6 py-3 text-gray-600 text-right">Actions</th>
             </tr>
@@ -324,8 +343,16 @@ export default function ExpensePage() {
                   <td className="px-6 py-4">
                     {exp.type === 'Salary' ? (
                       <div>
-                        <span className="font-medium">{exp.staffName}</span>
-                        {exp.staffDetails?.staffType && (
+                        <span className="font-medium">
+                          {exp.staffDetails?.role === 'Doctor' ? '👨‍⚕️ ' : '👨‍💼 '}
+                          {exp.staffName}
+                        </span>
+                        {exp.staffDetails?.role === 'Doctor' && exp.staffDetails?.specialization && (
+                          <span className="text-xs text-gray-500 ml-1">
+                            ({exp.staffDetails.specialization})
+                          </span>
+                        )}
+                        {exp.staffDetails?.role === 'Staff' && exp.staffDetails?.staffType && (
                           <span className="text-xs text-gray-500 ml-1">
                             ({exp.staffDetails.staffType})
                           </span>
