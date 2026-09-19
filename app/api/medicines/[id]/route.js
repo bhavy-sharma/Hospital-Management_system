@@ -27,12 +27,12 @@ export async function GET(request, { params }) {
   }
 }
 
-// PUT update medicine stock
+// PUT update medicine stock (dispense or restock)
 export async function PUT(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { quantity } = body;
+    const { quantity, action } = body;
 
     // Check if medicine exists
     const existingMedicine = await getMedicineById(id);
@@ -43,32 +43,44 @@ export async function PUT(request, { params }) {
       );
     }
 
-    if (quantity === undefined || quantity === '') {
+    if (quantity === undefined || quantity === '' || parseInt(quantity) <= 0) {
       return NextResponse.json(
-        { success: false, message: 'Quantity is required' },
+        { success: false, message: 'Valid quantity is required' },
         { status: 400 }
       );
     }
 
-    // For dispensing (out medicine), check if sufficient stock
-    if (body.action === 'dispense') {
-      const newQuantity = existingMedicine.quantity - parseInt(quantity);
-      if (newQuantity < 0) {
+    const qty = parseInt(quantity);
+    const currentQty = existingMedicine.quantity;
+
+    // ✅ DISPENSE (Out) - Reduce stock
+    if (action === 'dispense') {
+      if (qty > currentQty) {
         return NextResponse.json(
-          { success: false, message: `Insufficient stock! Available: ${existingMedicine.quantity}` },
+          { success: false, message: `Insufficient stock! Available: ${currentQty}` },
           { status: 400 }
         );
       }
+      const newQuantity = currentQty - qty;
       await updateMedicineStock(id, newQuantity);
       return NextResponse.json({ 
         success: true, 
-        message: `Dispensed ${quantity} ${existingMedicine.name} successfully`
+        message: `Dispensed ${qty} units of ${existingMedicine.name}. Remaining: ${newQuantity}`
       });
     }
 
-    // For updating stock directly
-    await updateMedicineStock(id, quantity);
-    
+    // ✅ RESTOCK - Add stock
+    if (action === 'restock') {
+      const newQuantity = currentQty + qty;
+      await updateMedicineStock(id, newQuantity);
+      return NextResponse.json({ 
+        success: true, 
+        message: `Restocked ${qty} units of ${existingMedicine.name}. New Stock: ${newQuantity}`
+      });
+    }
+
+    // Default: Set stock directly
+    await updateMedicineStock(id, qty);
     return NextResponse.json({ 
       success: true, 
       message: 'Medicine stock updated successfully'
@@ -87,7 +99,6 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
     
-    // Check if medicine exists
     const existingMedicine = await getMedicineById(id);
     if (!existingMedicine) {
       return NextResponse.json(
