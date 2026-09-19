@@ -11,14 +11,14 @@ export default function Navigation() {
     router.push('/login');
   };
 
-  const navItems = [
-    { path: '/dashboard', label: '📊 Dashboard' },
-    { path: '/members', label: '👥 Members' },
-    { path: '/medicines', label: '💊 Medicines' },
-    { path: '/expenses', label: '💰 Expenses' },
-    { path: '/patients', label: '🏥 Patients' },
-    { path: '/appointments', label: '📅 Appointments' },
-  ];
+   const navItems = [
+  { path: '/dashboard', label: '📊 Dashboard' },
+  { path: '/members', label: '👥 Members' },
+  { path: '/medicines', label: '💊 Pharmacy' },  // ✅ Updated
+  { path: '/expenses', label: '💰 Expenses' },
+  { path: '/patients', label: '🏥 Patients' },
+  { path: '/appointments', label: '📅 Appointments' },
+];
 
   return (
     <nav className="bg-white shadow-md">
