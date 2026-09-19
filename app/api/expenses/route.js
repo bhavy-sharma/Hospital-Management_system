@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllExpenses, createExpense, getTotalExpenses } from '@/lib/models/Expense';
+import { getAllExpenses, createExpense, getTotalExpenses, getExpensesByType } from '@/lib/models/Expense';
 import { getMemberById } from '@/lib/models/Member';
 
 // GET all expenses
@@ -37,7 +37,6 @@ export async function POST(request) {
     const body = await request.json();
     const { type, staffId, amount, description } = body;
 
-    // Validation
     if (!type || !amount) {
       return NextResponse.json(
         { success: false, message: 'Type and amount are required' },
@@ -48,35 +47,36 @@ export async function POST(request) {
     let staffName = 'N/A';
     let staffDetails = null;
 
-    // If salary, get staff details
+    // ✅ Salary: Doctor ya Staff dono handle karo
     if (type === 'Salary') {
       if (!staffId) {
         return NextResponse.json(
-          { success: false, message: 'Staff member is required for salary expense' },
+          { success: false, message: 'Member is required for salary expense' },
           { status: 400 }
         );
       }
       
       try {
-        const staff = await getMemberById(staffId);
-        if (staff) {
-          staffName = staff.name;
+        const member = await getMemberById(staffId);
+        if (member) {
+          staffName = member.name;
           staffDetails = {
-            id: staff._id,
-            name: staff.name,
-            role: staff.role,
-            staffType: staff.staffType
+            id: member._id,
+            name: member.name,
+            role: member.role,                               // ✅ Doctor / Staff
+            staffType: member.staffType || 'N/A',            // ✅ For Staff
+            specialization: member.specialization || 'N/A'   // ✅ For Doctor
           };
         } else {
           return NextResponse.json(
-            { success: false, message: 'Staff member not found' },
+            { success: false, message: 'Member not found' },
             { status: 404 }
           );
         }
       } catch (error) {
-        console.error('Error fetching staff:', error);
+        console.error('Error fetching member:', error);
         return NextResponse.json(
-          { success: false, message: 'Error fetching staff details' },
+          { success: false, message: 'Error fetching member details' },
           { status: 500 }
         );
       }
