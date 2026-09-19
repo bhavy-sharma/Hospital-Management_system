@@ -81,7 +81,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Members', href: '/dashboard/members', icon: Users },
     { name: 'Pharmacy', href: '/dashboard/medicines', icon: Pill },
-    { name: 'Expenses', href: '/dashboard/expenses', icon: Wallet },
+    { name: 'Expenses', href: '/dashboard/expense', icon: Wallet },
   ];
 
   const isActive = (href) => {
