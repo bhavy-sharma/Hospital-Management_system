@@ -79,78 +79,86 @@ export default function MembersPage() {
     }, 5000);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const method = editingId ? 'PUT' : 'POST';
-      const url = editingId ? `/api/members/${editingId}` : '/api/members';
-      
-      // Prepare data based on role
-      const submitData = {
-        name: formData.name,
-        role: formData.role,
-        phone: formData.phone,
-        email: formData.email,
-        address: formData.address,
-        details: formData.details
-      };
+  try {
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `/api/members/${editingId}` : '/api/members';
+    
+    console.log('=== SUBMIT DEBUG ===');
+    console.log('Method:', method);
+    console.log('URL:', url);
+    console.log('Editing ID:', editingId);
+    console.log('Form Data:', formData);
+    
+    const submitData = {
+      name: formData.name,
+      role: formData.role,
+      phone: formData.phone,
+      email: formData.email,
+      address: formData.address,
+      details: formData.details
+    };
 
-      // Add role-specific fields
-      if (formData.role === 'Doctor') {
-        submitData.specialization = formData.specialization;
-        submitData.experience = formData.experience;
-        submitData.qualification = formData.qualification;
-        submitData.staffType = 'N/A';
-        submitData.disease = 'N/A';
-        submitData.bloodGroup = 'N/A';
-        submitData.age = 'N/A';
-        submitData.gender = 'N/A';
-      } else if (formData.role === 'Patient') {
-        submitData.disease = formData.disease;
-        submitData.bloodGroup = formData.bloodGroup;
-        submitData.age = formData.age;
-        submitData.gender = formData.gender;
-        submitData.staffType = 'N/A';
-        submitData.specialization = 'N/A';
-        submitData.experience = 'N/A';
-        submitData.qualification = 'N/A';
-      } else if (formData.role === 'Staff') {
-        submitData.staffType = formData.staffType;
-        submitData.specialization = 'N/A';
-        submitData.experience = 'N/A';
-        submitData.qualification = 'N/A';
-        submitData.disease = 'N/A';
-        submitData.bloodGroup = 'N/A';
-        submitData.age = 'N/A';
-        submitData.gender = 'N/A';
-      }
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        showToast(editingId ? 'Member updated successfully!' : 'Member added successfully!');
-        await fetchMembers();
-        resetForm();
-      } else {
-        showToast(data.message || 'Failed to save member', 'error');
-      }
-    } catch (error) {
-      console.error('Error saving member:', error);
-      showToast('Network error. Please try again.', 'error');
-    } finally {
-      setLoading(false);
+    if (formData.role === 'Doctor') {
+      submitData.specialization = formData.specialization;
+      submitData.experience = formData.experience;
+      submitData.qualification = formData.qualification;
+      submitData.staffType = 'N/A';
+      submitData.disease = 'N/A';
+      submitData.bloodGroup = 'N/A';
+      submitData.age = 'N/A';
+      submitData.gender = 'N/A';
+    } else if (formData.role === 'Patient') {
+      submitData.disease = formData.disease;
+      submitData.bloodGroup = formData.bloodGroup;
+      submitData.age = formData.age;
+      submitData.gender = formData.gender;
+      submitData.staffType = 'N/A';
+      submitData.specialization = 'N/A';
+      submitData.experience = 'N/A';
+      submitData.qualification = 'N/A';
+    } else if (formData.role === 'Staff') {
+      submitData.staffType = formData.staffType;
+      submitData.specialization = 'N/A';
+      submitData.experience = 'N/A';
+      submitData.qualification = 'N/A';
+      submitData.disease = 'N/A';
+      submitData.bloodGroup = 'N/A';
+      submitData.age = 'N/A';
+      submitData.gender = 'N/A';
     }
-  };
+
+    console.log('Submit Data:', submitData);
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(submitData),
+    });
+
+    console.log('Response Status:', response.status);
+    const data = await response.json();
+    console.log('Response Data:', data);
+
+    if (data.success) {
+      showToast(editingId ? 'Member updated successfully!' : 'Member added successfully!');
+      await fetchMembers();
+      resetForm();
+    } else {
+      showToast(data.message || 'Failed to save member', 'error');
+    }
+  } catch (error) {
+    console.error('Error saving member:', error);
+    showToast('Network error. Please try again.', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleEdit = (member) => {
     setFormData({
